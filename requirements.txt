@@ -1,6 +1,6 @@
 mss
 opencv-python-headless
-pytesseract
+winocr
 rapidfuzz
 requests
-PyYAML
+keyboard

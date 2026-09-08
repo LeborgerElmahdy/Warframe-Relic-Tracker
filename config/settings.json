@@ -1,0 +1,19 @@
+{
+  "capture": {
+    "_comment_region": "All region values are FRACTIONS of screen width/height (0.0-1.0), NOT pixel coordinates. This keeps the same config working across different resolutions, as long as Warframe's UI scale is left at default (100%).",
+    "_comment_calibration": "To calibrate: screenshot the relic reward screen, measure the pixel box around the reward names, then divide by screen width/height to get fractions. e.g. on a 1920x1080 screenshot, if the box starts at x=560 and is 800px wide: left = 560/1920 = 0.2917, width = 800/1920 = 0.4167",
+
+    "monitor_index": 1,
+
+    "region": {
+      "_comment": "Calibrated at 1920x1080 (confirmed 27in 1080p monitor) against a real 4-reward screen with mixed 1-line and 2-line wrapped names. Box verified visually to fully contain text with no clipping and no player-name row bleed-in.",
+      "left": 0.2396,
+      "top": 0.3731,
+      "width": 0.5208,
+      "height": 0.0528
+    },
+
+    "hotkey": "f8",
+    "hotkey_debounce_seconds": 0.5
+  }
+}
