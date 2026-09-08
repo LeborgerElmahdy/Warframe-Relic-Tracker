@@ -1,0 +1,6 @@
+mss
+opencv-python-headless
+pytesseract
+rapidfuzz
+requests
+PyYAML
