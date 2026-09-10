@@ -1,4 +1,4 @@
-import requests
+import requests # type: ignore
 from statistics import median
 
 API = "https://api.warframe.market/v2"

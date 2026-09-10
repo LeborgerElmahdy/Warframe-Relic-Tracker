@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from winocr import recognize_cv2_sync
+from winocr import recognize_cv2_sync # type: ignore
 
 GOLD_HSV_LOWER = np.array([12, 35, 90])
 GOLD_HSV_UPPER = np.array([40, 255, 255])

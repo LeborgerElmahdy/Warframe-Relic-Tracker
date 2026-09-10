@@ -23,7 +23,7 @@ class Capturer:
 
         self._sct = mss.mss()
         self._monitor = self._sct.monitors[self.monitor_index]
-        self._region_box = self._frac_to_box(self.region_frac)
+        self.region_box = self._frac_to_box(self.region_frac)
         self._last_trigger_time = 0.0
 
     def _frac_to_box(self, frac):
@@ -40,7 +40,7 @@ class Capturer:
         return np.array(raw)[:, :, :3]  # Drop alpha, return BGR
 
     def get_full_region_frame(self):
-        return self._grab(self._region_box)
+        return self._grab(self.region_box)
 
     def on_hotkey(self, callback):
         def _handler():
