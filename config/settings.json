@@ -6,14 +6,14 @@
     "monitor_index": 1,
 
     "region": {
-      "_comment": "Calibrated at 1920x1080 (confirmed 27in 1080p monitor) against a real 4-reward screen with mixed 1-line and 2-line wrapped names. Box verified visually to fully contain text with no clipping and no player-name row bleed-in.",
+      "_comment": "Calibrated at 1920x1080",
       "left": 0.2396,
       "top": 0.3731,
       "width": 0.5208,
       "height": 0.0528
     },
 
-    "hotkey": "f8",
+    "hotkey": "~",
     "hotkey_debounce_seconds": 0.5
   }
 }

@@ -1,15 +1,6 @@
-"""
-preprocess.py
-
-Splits a captured reward-row image into per-item column bounds (via gold
-color detection), then cleans the FULL frame once via CLAHE + brightness
-thresholding and crops per-item images out of that single result --
-cheaper than reprocessing each item separately, and keeps shared contrast
-context across the whole row.
-"""
-
 import cv2
 import numpy as np
+from winocr import recognize_cv2_sync # type: ignore
 
 GOLD_HSV_LOWER = np.array([12, 35, 90])
 GOLD_HSV_UPPER = np.array([40, 255, 255])
@@ -22,11 +13,8 @@ SEGMENT_PADDING = 5              # extra pixels kept around each detected segmen
 
 UPSCALE_FACTOR = 2.5
 
-
 def _remove_short_runs(arr, min_width, target_value):
-    """Flip runs of `target_value` shorter than `min_width` to the opposite
-    value. Used to drop noise spikes (target_value=True) and to bridge
-    small gaps between words in the same name (target_value=False)."""
+    "Used to drop noise spikes and to bridge small gaps between words in the same name."
     arr = arr.copy()
     count, start = 0, 0
     for i in range(len(arr) + 1):
@@ -43,7 +31,8 @@ def _remove_short_runs(arr, min_width, target_value):
 
 
 def find_item_segments(frame_bgr):
-    """Returns horizontal (x1, x2) bounds for each item, at original (1x) scale."""
+    "Returns horizontal (x1, x2) bounds for each item, at original (1x) scale."
+
     hsv = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, GOLD_HSV_LOWER, GOLD_HSV_UPPER)
     is_text = mask.sum(axis=0) >= MIN_TEXT_PIXELS_PER_COL
@@ -70,25 +59,22 @@ def find_item_segments(frame_bgr):
 
 
 def preprocess_frame(frame):
-    """Upscale -> grayscale -> CLAHE contrast boost -> normalize -> hard
-    brightness threshold -> invert to black-on-white. Isolates bright
-    letter highlights rather than gold hue, which holds up better against
-    icon-edge color bleed."""
-    scaled = cv2.resize(frame, None, fx=UPSCALE_FACTOR, fy=UPSCALE_FACTOR,
-                         interpolation=cv2.INTER_CUBIC)
+    "Upscale -> grayscale -> CLAHE contrast boost -> normalize -> hard brightness threshold -> invert to black-on-white."
+
+    scaled = cv2.resize(frame, None, fx = UPSCALE_FACTOR, fy = UPSCALE_FACTOR, interpolation = cv2.INTER_CUBIC)
     gray = cv2.cvtColor(scaled, cv2.COLOR_BGR2GRAY)
 
-    clahe = cv2.createCLAHE(clipLimit=50.0, tileGridSize=(2, 2))
+    clahe = cv2.createCLAHE(clipLimit = 50.0, tileGridSize=(2, 2))
     enhanced = clahe.apply(gray)
-    normalized = cv2.normalize(enhanced, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
+    normalized = cv2.normalize(enhanced, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX)
     _, thresholded = cv2.threshold(normalized, 230, 255, cv2.THRESH_BINARY)
+
     return cv2.bitwise_not(thresholded)
 
 
 def get_preprocessed_items(frame):
-    """Cleans the full frame once, then crops out each item's region
-    (scaling item bounds up to match the cleaned image's resolution)."""
+    "Cleans the full frame once, then crops out each item's region."
     bounds = find_item_segments(frame)
     clean_full = preprocess_frame(frame)
 
@@ -96,3 +82,7 @@ def get_preprocessed_items(frame):
         clean_full[:, int(x1 * UPSCALE_FACTOR):int(x2 * UPSCALE_FACTOR)]
         for x1, x2 in bounds
     ]
+
+def extract_text(image):
+    result = recognize_cv2_sync(image)
+    return result["text"].strip()
