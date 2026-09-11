@@ -2,8 +2,8 @@ import cv2  # type: ignore
 import numpy as np  # type: ignore
 from winocr import recognize_cv2_sync  # type: ignore
 
-GOLD_HSV_LOWER = np.array([12, 35, 70])
-GOLD_HSV_UPPER = np.array([40, 255, 255])
+GOLD_HLS_LOWER = np.array([0, 100, 0])
+GOLD_HLS_UPPER = np.array([35, 255, 120])
 
 MIN_TEXT_PIXELS_PER_COL = 200
 MIN_TEXT_SPIKE_WIDTH = 3
@@ -30,8 +30,8 @@ def _remove_short_runs(arr, min_width, target_value):
 
 
 def find_item_segments(frame_bgr):
-    hsv = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, GOLD_HSV_LOWER, GOLD_HSV_UPPER)
+    hls = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HLS)
+    mask = cv2.inRange(hls, GOLD_HLS_LOWER, GOLD_HLS_UPPER)
     is_text = mask.sum(axis=0) >= MIN_TEXT_PIXELS_PER_COL
 
     cleaned = _remove_short_runs(is_text, MIN_TEXT_SPIKE_WIDTH, True)
@@ -60,8 +60,8 @@ def preprocess_frame(frame):
         frame, None, fx=UPSCALE_FACTOR, fy=UPSCALE_FACTOR,
         interpolation=cv2.INTER_CUBIC
     )
-    hsv = cv2.cvtColor(scaled, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, GOLD_HSV_LOWER, GOLD_HSV_UPPER)
+    hls = cv2.cvtColor(scaled, cv2.COLOR_BGR2HLS)
+    mask = cv2.inRange(hls, GOLD_HLS_LOWER, GOLD_HLS_UPPER)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
     return cv2.bitwise_not(mask)
 
