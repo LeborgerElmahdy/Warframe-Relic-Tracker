@@ -22,7 +22,9 @@ TEXT_DIM = "#5c6b72"       # non-tradable label
 PANEL_HEIGHT = 78
 PANEL_GAP_BELOW_TEXT = 140   # clears the player-name row under the cards
 CORNER = 10
-AUTO_HIDE_MS = 10000
+AUTO_HIDE_MS = 15000
+BOX_WIDTH = 220
+BOX_GAP = 24
 
 
 def _round_rect(canvas, x1, y1, x2, y2, r, **kw):
@@ -33,6 +35,7 @@ def _round_rect(canvas, x1, y1, x2, y2, r, **kw):
 
 class Overlay:
     def __init__(self, region_box):
+        self.center_x = region_box["left"] + region_box["width"] // 2
         self.base_y = region_box["top"] + region_box["height"] + PANEL_GAP_BELOW_TEXT
         self._hide_job = None
 
@@ -60,7 +63,9 @@ class Overlay:
         ctypes.windll.user32.SetWindowLongW(target, GWL_EXSTYLE, style | WS_EX_LAYERED | WS_EX_TRANSPARENT)
 
     def show_items(self, slots):
-        """slots: list of {"x1", "x2" (screen px, absolute), "name", "price_line", "tradable"}."""
+        """slots: list of {"name", "price_line", "tradable"}. Always drawn
+        as uniform, evenly-spaced boxes centered under the reward row,
+        regardless of each item's actual detected position/width."""
         self.root.after(0, self._draw, slots)
 
     def _draw(self, slots):
@@ -68,16 +73,20 @@ class Overlay:
             self.root.after_cancel(self._hide_job)
 
         self.canvas.delete("all")
-        for slot in slots:
-            # Canvas spans the full screen starting at x=0, so absolute
-            # screen coordinates ARE canvas coordinates -- no offset needed.
-            x1, x2 = slot["x1"], slot["x2"]
+
+        n = len(slots)
+        total_width = n * BOX_WIDTH + (n - 1) * BOX_GAP
+        start_x = self.center_x - total_width // 2
+
+        for i, slot in enumerate(slots):
+            x1 = start_x + i * (BOX_WIDTH + BOX_GAP)
+            x2 = x1 + BOX_WIDTH
             _round_rect(self.canvas, x1, 4, x2, PANEL_HEIGHT - 4, CORNER,
                         fill=PANEL_FILL, outline=ACCENT, width=1)
 
             cx = (x1 + x2) // 2
             self.canvas.create_text(cx, 22, text=slot["name"], fill=TEXT_MUTED,
-                                     font=("Consolas", 9), width=(x2 - x1 - 12))
+                                     font=("Consolas", 9), width=(BOX_WIDTH - 12))
 
             if slot["tradable"]:
                 self.canvas.create_text(cx, 52, text=slot["price_line"], fill=ACCENT,
@@ -107,12 +116,11 @@ class Overlay:
 
 
 if __name__ == "__main__":
-    # Manual test: fake region_box + fake slots, no pipeline needed.
     fake_region = {"left": 0, "top": 300, "width": 1000, "height": 60}
     ov = Overlay(fake_region)
     ov.show_items([
-        {"x1": 40, "x2": 260, "name": "Braton Prime Blueprint", "price_line": "12p", "tradable": True},
-        {"x1": 300, "x2": 480, "name": "Forma Blueprint", "price_line": "", "tradable": False},
-        {"x1": 520, "x2": 740, "name": "Soma Prime Barrel", "price_line": "25p", "tradable": True},
+        {"name": "Braton Prime Blueprint", "price_line": "12p", "tradable": True},
+        {"name": "Forma Blueprint", "price_line": "", "tradable": False},
+        {"name": "Soma Prime Barrel", "price_line": "25p", "tradable": True},
     ])
     ov.start()
